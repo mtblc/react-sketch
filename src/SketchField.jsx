@@ -257,6 +257,7 @@ class SketchField extends PureComponent {
     if (e) e.preventDefault();
     let { widthCorrection, heightCorrection } = this.props;
     let canvas = this._fc;
+    let backgroundCanvas = this._fbc;
     let { offsetWidth, clientHeight } = this._container;
     let prevWidth = canvas.getWidth();
     let prevHeight = canvas.getHeight();
@@ -264,34 +265,36 @@ class SketchField extends PureComponent {
     let hfactor = ((clientHeight - heightCorrection) / prevHeight).toFixed(2);
     canvas.setWidth(offsetWidth - widthCorrection);
     canvas.setHeight(clientHeight - heightCorrection);
-    if (canvas.backgroundImage) {
-      // Need to scale background images as well
-      let bi = canvas.backgroundImage;
-      bi.width = bi.width * wfactor;
-      bi.height = bi.height * hfactor
-    }
-    let objects = canvas.getObjects();
-    for (let i in objects) {
-      let obj = objects[i];
-      let scaleX = obj.scaleX;
-      let scaleY = obj.scaleY;
-      let left = obj.left;
-      let top = obj.top;
-      let tempScaleX = scaleX * wfactor;
-      let tempScaleY = scaleY * hfactor;
-      let tempLeft = left * wfactor;
-      let tempTop = top * hfactor;
-      obj.scaleX = tempScaleX;
-      obj.scaleY = tempScaleY;
-      obj.left = tempLeft;
-      obj.top = tempTop;
-      obj.setCoords()
-    }
+    backgroundCanvas.setWidth(offsetWidth - widthCorrection);
+    backgroundCanvas.setHeight(clientHeight - heightCorrection);
+
+    [canvas, backgroundCanvas].forEach((currentCanvas) => {
+      let objects = currentCanvas.getObjects();
+      for (let i in objects) {
+        let obj = objects[i];
+        let scaleX = obj.scaleX;
+        let scaleY = obj.scaleY;
+        let left = obj.left;
+        let top = obj.top;
+        let tempScaleX = scaleX * wfactor;
+        let tempScaleY = scaleY * hfactor;
+        let tempLeft = left * wfactor;
+        let tempTop = top * hfactor;
+        obj.scaleX = tempScaleX;
+        obj.scaleY = tempScaleY;
+        obj.left = tempLeft;
+        obj.top = tempTop;
+        obj.setCoords()
+      }
+    });
+
     this.setState({
       parentWidth: offsetWidth
     });
     canvas.renderAll();
     canvas.calcOffset();
+    backgroundCanvas.renderAll();
+    backgroundCanvas.calcOffset();
   };
 
   /**
@@ -313,17 +316,18 @@ class SketchField extends PureComponent {
    * @param factor the zoom factor
    */
   zoom = (factor) => {
-    let canvas = this._fc;
-    let objects = canvas.getObjects();
-    for (let i in objects) {
-      objects[i].scaleX = objects[i].scaleX * factor;
-      objects[i].scaleY = objects[i].scaleY * factor;
-      objects[i].left = objects[i].left * factor;
-      objects[i].top = objects[i].top * factor;
-      objects[i].setCoords();
-    }
-    canvas.renderAll();
-    canvas.calcOffset();
+    [this._fc, this._fbc].forEach((canvas) => {
+      let objects = canvas.getObjects();
+      for (let i in objects) {
+        objects[i].scaleX = objects[i].scaleX * factor;
+        objects[i].scaleY = objects[i].scaleY * factor;
+        objects[i].left = objects[i].left * factor;
+        objects[i].top = objects[i].top * factor;
+        objects[i].setCoords();
+      }
+      canvas.renderAll();
+      canvas.calcOffset();
+    });
   };
 
   /**
@@ -522,31 +526,21 @@ class SketchField extends PureComponent {
    * @param options
    */
   setBackgroundFromDataUrl = (dataUrl, options = {}) => {
-    let canvas = this._fc;
-    if (options.stretched) {
-      delete options.stretched;
-      Object.assign(options, {
-        width: canvas.width,
-        height: canvas.height
-      })
-    }
-    if (options.stretchedX) {
-      delete options.stretchedX;
-      Object.assign(options, {
-        width: canvas.width
-      })
-    }
-    if (options.stretchedY) {
-      delete options.stretchedY;
-      Object.assign(options, {
-        height: canvas.height
-      })
-    }
-    let img = new Image();
-    img.setAttribute('crossOrigin', 'anonymous');
-    img.onload = () => canvas.setBackgroundImage(new fabric.Image(img),
-      () => canvas.renderAll(), options);
-    img.src = dataUrl
+    let canvas = this._fbc;
+    fabric.Image.fromURL(dataUrl, (oImg) => {
+      let opts = {
+        left: Math.random() * (canvas.getWidth() - oImg.width * 0.5),
+        top: Math.random() * (canvas.getHeight() - oImg.height * 0.5),
+        scale: 0.5
+      };
+      Object.assign(opts, options);
+      oImg.scale(opts.scale);
+      oImg.set({
+        'left': opts.left,
+        'top': opts.top
+      });
+      canvas.add(oImg);
+    });
   };
 
   addText = (text, options = {}) => {
@@ -574,11 +568,12 @@ class SketchField extends PureComponent {
       backgroundColor
     } = this.props;
 
-    let canvas = this._fc = new fabric.Canvas(this._canvas/*, {
-         preserveObjectStacking: false,
-         renderOnAddRemove: false,
-         skipTargetFind: true
-         }*/);
+    let canvas = this._fc = new fabric.Canvas(this._canvas);
+    let backgroundCanvas = this._fbc = new fabric.Canvas(this._backgroundCanvas);
+    
+    // set canvas position
+    canvas.wrapperEl.style.position = 'absolute';
+    backgroundCanvas.wrapperEl.style.position = 'absolute';
 
     this._initTools(canvas);
 
@@ -658,7 +653,9 @@ class SketchField extends PureComponent {
 
     let canvasDivStyle = Object.assign({}, style ? style : {},
       width ? { width: width } : {},
-      height ? { height: height } : { height: 512 });
+      height ? { height: height } : { height: 512 },
+      { position: 'relative' },
+    );
 
     return (
       <div
@@ -667,9 +664,14 @@ class SketchField extends PureComponent {
         style={canvasDivStyle}>
         <canvas
           id={uuid4()}
-          ref={(c) => this._canvas = c}>
+          ref={(c) => this._backgroundCanvas = c}>
           Sorry, Canvas HTML5 element is not supported by your browser
-          :(
+        </canvas>
+        <canvas
+          id={uuid4()}
+          ref={(c) => this._canvas = c}
+        >
+          Sorry, Canvas HTML5 element is not supported by your browser
         </canvas>
       </div>
     )
