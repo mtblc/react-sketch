@@ -263,12 +263,15 @@ class SketchField extends PureComponent {
     let prevHeight = canvas.getHeight();
     let wfactor = ((offsetWidth - widthCorrection) / prevWidth).toFixed(2);
     let hfactor = ((clientHeight - heightCorrection) / prevHeight).toFixed(2);
-    canvas.setWidth(offsetWidth - widthCorrection);
-    canvas.setHeight(clientHeight - heightCorrection);
-    backgroundCanvas.setWidth(offsetWidth - widthCorrection);
-    backgroundCanvas.setHeight(clientHeight - heightCorrection);
+
+    this.setState({
+      parentWidth: offsetWidth
+    });
 
     [canvas, backgroundCanvas].forEach((currentCanvas) => {
+      currentCanvas.setWidth(offsetWidth - widthCorrection);
+      currentCanvas.setHeight(clientHeight - heightCorrection);
+
       let objects = currentCanvas.getObjects();
       for (let i in objects) {
         let obj = objects[i];
@@ -286,15 +289,10 @@ class SketchField extends PureComponent {
         obj.top = tempTop;
         obj.setCoords()
       }
-    });
 
-    this.setState({
-      parentWidth: offsetWidth
+      currentCanvas.renderAll();
+      currentCanvas.calcOffset();
     });
-    canvas.renderAll();
-    canvas.calcOffset();
-    backgroundCanvas.renderAll();
-    backgroundCanvas.calcOffset();
   };
 
   /**
