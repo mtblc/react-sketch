@@ -108,6 +108,19 @@ class SketchField extends PureComponent {
   };
 
   /**
+   * Load image from URL
+   *
+   * @param dataUrl the image url or Data Url
+   * @param options image options
+   *
+   * @returns Promise with image when is resolved
+   */
+  loadImageFromURL = (dataUrl, options = {}) => new Promise((resolve) => {
+    fabric.Image.fromURL(dataUrl, (oImg) => { resolve(oImg); }, options);
+  });
+
+
+  /**
    * Add an image as object to the specified canvas
    *
    * @param dataUrl the image url or Data Url
