@@ -457,6 +457,7 @@ class SketchField extends PureComponent {
   clear = (propertiesToInclude) => {
     let discarded = this.toJSON(propertiesToInclude);
     this._fc.clear();
+    this._fbc.clear();
     this._history.clear();
     return discarded
   };
