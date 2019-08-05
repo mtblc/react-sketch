@@ -108,7 +108,7 @@ class SketchField extends PureComponent {
   };
 
   /**
-   * Add an image as object to the canvas
+   * Add an image as object to the specified canvas
    *
    * @param dataUrl the image url or Data Url
    * @param options object to pass and change some options when loading image, the format of the object is:
@@ -118,9 +118,9 @@ class SketchField extends PureComponent {
    *   top: <Number: distance from top of canvas>,
    *   scale: <Number: initial scale of image>
    * }
+   * @params canvas canvas to add image
    */
-  addImg = (dataUrl, options = {}) => {
-    let canvas = this._fc;
+  _addImgToCanvas = (dataUrl, options = {}, canvas) => {
     fabric.Image.fromURL(dataUrl, (oImg) => {
       let opts = {
         left: Math.random() * (canvas.getWidth() - oImg.width * 0.5),
@@ -136,6 +136,20 @@ class SketchField extends PureComponent {
       canvas.add(oImg);
     });
   };
+
+  /**
+   * Add an image as object to the canvas
+   *
+   * @param dataUrl the image url or Data Url
+   * @param options object to pass and change some options when loading image, the format of the object is:
+   *
+   * {
+   *   left: <Number: distance from left of canvas>,
+   *   top: <Number: distance from top of canvas>,
+   *   scale: <Number: initial scale of image>
+   * }
+   */
+  addImg = (dataUrl, options = {}) => this._addImgToCanvas(dataUrl, options, this._fc);
 
   /**
    * Action when an object is added to the canvas
@@ -524,23 +538,7 @@ class SketchField extends PureComponent {
    * @param dataUrl the dataUrl to be used as a background
    * @param options
    */
-  setBackgroundFromDataUrl = (dataUrl, options = {}) => {
-    let canvas = this._fbc;
-    fabric.Image.fromURL(dataUrl, (oImg) => {
-      let opts = {
-        left: Math.random() * (canvas.getWidth() - oImg.width * 0.5),
-        top: Math.random() * (canvas.getHeight() - oImg.height * 0.5),
-        scale: 0.5
-      };
-      Object.assign(opts, options);
-      oImg.scale(opts.scale);
-      oImg.set({
-        'left': opts.left,
-        'top': opts.top
-      });
-      canvas.add(oImg);
-    });
-  };
+  setBackgroundFromDataUrl = (dataUrl, options = {}) => this._addImgToCanvas(dataUrl, options, this._fbc);
 
   addText = (text, options = {}) => {
     let canvas = this._fc;
