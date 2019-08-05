@@ -108,7 +108,7 @@ class SketchField extends PureComponent {
   };
 
   /**
-   * Add an image as object to specified canvas
+   * Add an image as object to the specified canvas
    *
    * @param dataUrl the image url or Data Url
    * @param options object to pass and change some options when loading image, the format of the object is:
