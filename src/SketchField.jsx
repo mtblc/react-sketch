@@ -569,6 +569,15 @@ class SketchField extends PureComponent {
     canvas.add(iText);
   };
 
+  /**
+   * Sets the canvas opacity
+   *
+   * @param opacity number between 0 and 1
+   */
+  setCanvasOpacity = (opacityValue) => {
+    this._fc.wrapperEl.style.opacity = opacityValue;
+  }
+
   componentDidMount = () => {
     let {
       tool,
