@@ -326,7 +326,6 @@ class SketchField extends PureComponent {
         }
       }
 
-
       currentCanvas.renderAll();
       currentCanvas.calcOffset();
     });
