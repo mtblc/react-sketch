@@ -15,6 +15,13 @@ import Tool from './tools';
 
 const fabric = require('fabric').fabric;
 
+const styles = {
+  cursorCanvas: {
+    position: 'absolute',
+    pointerEvents: 'none',
+  },
+}
+
 /**
  * Sketch Tool based on FabricJS for React Applications
  */
@@ -77,10 +84,10 @@ class SketchField extends PureComponent {
     parentWidth: 550,
     action: true
   };
-  _initTools = (fabricCanvas) => {
+  _initTools = (fabricCanvas, mouseCursor) => {
     this._tools = {};
     this._tools[Tool.Select] = new Select(fabricCanvas);
-    this._tools[Tool.Pencil] = new Pencil(fabricCanvas);
+    this._tools[Tool.Pencil] = new Pencil(fabricCanvas, mouseCursor);
     this._tools[Tool.Line] = new Line(fabricCanvas);
     this._tools[Tool.Arrow] = new Arrow(fabricCanvas);
     this._tools[Tool.Rectangle] = new Rectangle(fabricCanvas);
@@ -295,27 +302,30 @@ class SketchField extends PureComponent {
       parentWidth: offsetWidth
     });
 
-    [canvas, backgroundCanvas].forEach((currentCanvas) => {
+    [this._fcursor, canvas, backgroundCanvas].forEach((currentCanvas) => {
       currentCanvas.setWidth(offsetWidth - widthCorrection);
       currentCanvas.setHeight(clientHeight - heightCorrection);
 
-      let objects = currentCanvas.getObjects();
-      for (let i in objects) {
-        let obj = objects[i];
-        let scaleX = obj.scaleX;
-        let scaleY = obj.scaleY;
-        let left = obj.left;
-        let top = obj.top;
-        let tempScaleX = scaleX * wfactor;
-        let tempScaleY = scaleY * hfactor;
-        let tempLeft = left * wfactor;
-        let tempTop = top * hfactor;
-        obj.scaleX = tempScaleX;
-        obj.scaleY = tempScaleY;
-        obj.left = tempLeft;
-        obj.top = tempTop;
-        obj.setCoords()
+      if (currentCanvas !== this._fcursor) {
+        let objects = currentCanvas.getObjects();
+        for (let i in objects) {
+          let obj = objects[i];
+          let scaleX = obj.scaleX;
+          let scaleY = obj.scaleY;
+          let left = obj.left;
+          let top = obj.top;
+          let tempScaleX = scaleX * wfactor;
+          let tempScaleY = scaleY * hfactor;
+          let tempLeft = left * wfactor;
+          let tempTop = top * hfactor;
+          obj.scaleX = tempScaleX;
+          obj.scaleY = tempScaleY;
+          obj.left = tempLeft;
+          obj.top = tempTop;
+          obj.setCoords()
+        }
       }
+
 
       currentCanvas.renderAll();
       currentCanvas.calcOffset();
@@ -589,12 +599,15 @@ class SketchField extends PureComponent {
 
     let canvas = this._fc = new fabric.Canvas(this._canvas);
     let backgroundCanvas = this._fbc = new fabric.Canvas(this._backgroundCanvas);
-    
+    const cursorCanvas = this._fcursor = new fabric.StaticCanvas(this._cursor);
+    const mouseCursor = new fabric.Circle({ originX: 'center', originY: 'center' });
+
     // set canvas position
     canvas.wrapperEl.style.position = 'absolute';
     backgroundCanvas.wrapperEl.style.position = 'absolute';
 
-    this._initTools(canvas);
+    cursorCanvas.add(mouseCursor);
+    this._initTools(canvas, mouseCursor);
 
     // set initial backgroundColor
     this._backgroundColor(backgroundColor)
@@ -683,7 +696,11 @@ class SketchField extends PureComponent {
         style={canvasDivStyle}>
         <canvas
           id={uuid4()}
-          ref={(c) => this._backgroundCanvas = c}>
+          ref={(c) => this._backgroundCanvas = c}
+        >
+          Sorry, Canvas HTML5 element is not supported by your browser
+        </canvas>
+        <canvas id="cursor" ref={(c) => this._cursor = c} style={styles.cursorCanvas}>
           Sorry, Canvas HTML5 element is not supported by your browser
         </canvas>
         <canvas
