@@ -16,7 +16,6 @@ class Pencil extends FabricCanvasTool {
     canvas.freeDrawingBrush.color = props.lineColor;
     mouseCursor.set({ radius: props.lineWidth / 2, fill: props.lineColor })
 
-
     canvas.on('mouse:move', function (evt) {
       const mouse = this.getPointer(evt.e);
       mouseCursor
