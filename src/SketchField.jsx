@@ -15,13 +15,6 @@ import Tool from './tools';
 
 const fabric = require('fabric').fabric;
 
-const styles = {
-  cursorCanvas: {
-    position: 'absolute',
-    pointerEvents: 'none',
-  },
-}
-
 /**
  * Sketch Tool based on FabricJS for React Applications
  */
@@ -604,6 +597,8 @@ class SketchField extends PureComponent {
     // set canvas position
     canvas.wrapperEl.style.position = 'absolute';
     backgroundCanvas.wrapperEl.style.position = 'absolute';
+    cursorCanvas.lowerCanvasEl.style.position = 'absolute';
+    cursorCanvas.lowerCanvasEl.style.pointerEvents = 'none';
 
     cursorCanvas.add(mouseCursor);
     this._initTools(canvas, mouseCursor);
@@ -699,7 +694,7 @@ class SketchField extends PureComponent {
         >
           Sorry, Canvas HTML5 element is not supported by your browser
         </canvas>
-        <canvas id="cursor" ref={(c) => this._cursor = c} style={styles.cursorCanvas}>
+        <canvas id="cursor" ref={(c) => this._cursor = c}>
           Sorry, Canvas HTML5 element is not supported by your browser
         </canvas>
         <canvas
