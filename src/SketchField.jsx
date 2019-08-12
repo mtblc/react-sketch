@@ -708,4 +708,4 @@ class SketchField extends PureComponent {
   }
 }
 
-export default SketchField
+export default SketchField;
