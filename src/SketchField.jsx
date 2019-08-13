@@ -694,13 +694,13 @@ class SketchField extends PureComponent {
         >
           Sorry, Canvas HTML5 element is not supported by your browser
         </canvas>
-        <canvas id="cursor" ref={(c) => this._cursor = c}>
-          Sorry, Canvas HTML5 element is not supported by your browser
-        </canvas>
         <canvas
           id={uuid4()}
           ref={(c) => this._canvas = c}
         >
+          Sorry, Canvas HTML5 element is not supported by your browser
+        </canvas>
+        <canvas id="cursor" ref={(c) => this._cursor = c}>
           Sorry, Canvas HTML5 element is not supported by your browser
         </canvas>
       </div>
