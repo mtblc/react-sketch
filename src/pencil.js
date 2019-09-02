@@ -15,21 +15,24 @@ class Pencil extends FabricCanvasTool {
     canvas.freeDrawingBrush.width = props.lineWidth;
     canvas.freeDrawingBrush.color = props.lineColor;
     mouseCursor.set({ radius: props.lineWidth / 2, fill: props.lineColor })
+  }
 
-    canvas.on('mouse:move', function (evt) {
-      const mouse = this.getPointer(evt.e);
-      mouseCursor
-        .set({ top: mouse.y, left: mouse.x })
-        .setCoords()
-        .canvas.renderAll();
-    });
+  doMouseMove(event) {
+    const canvas = this._canvas;
+    const mouseCursor = this._mouseCursor;
+    const mouse = canvas.getPointer(event.e);
+    mouseCursor
+      .set({ top: mouse.y, left: mouse.x })
+      .setCoords()
+      .canvas.renderAll();
+  }
 
-    canvas.on('mouse:out', function () {
-      mouseCursor
-        .set({ top: -100, left: -100 })
-        .setCoords()
-        .canvas.renderAll();
-    });
+  doMouseOut() {
+    const mouseCursor = this._mouseCursor;
+    mouseCursor
+      .set({ top: -100, left: -100 })
+      .setCoords()
+      .canvas.renderAll();
   }
 }
 
