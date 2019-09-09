@@ -13,12 +13,12 @@
     "name": "Thomas Bolis",
     "email": "thomas.bolis@gmail.com"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/tbolis/react-sketch.git"
-  },
+  "repository": "https://github.com/mtblc/react-sketch.git",
   "bugs": {
-    "url": "https://github.com/tbolis/react-sketch/issues"
+    "url": "https://github.com/mtblc/react-sketch/issues"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   },
   "license": "MIT",
   "main": "./dist",
