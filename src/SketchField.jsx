@@ -48,6 +48,8 @@ class SketchField extends PureComponent {
     heightCorrection: PropTypes.number,
     // Specify action on change
     onChange: PropTypes.func,
+    // Specify action on mouse up
+    onMouseUp: PropTypes.func,
     // Default initial value
     defaultValue: PropTypes.object,
     // Sketch width
@@ -272,6 +274,13 @@ class SketchField extends PureComponent {
         onChange(e.e)
       }, 10)
     }
+
+    if (this.props.onMouseUp) {
+      let onMouseUp = this.props.onMouseUp;
+      setTimeout(() => {
+        onMouseUp(e.e)
+      }, 10)
+    }
   };
 
   /**
@@ -285,6 +294,7 @@ class SketchField extends PureComponent {
     let { widthCorrection, heightCorrection } = this.props;
     let canvas = this._fc;
     let backgroundCanvas = this._fbc;
+    let watershedCanvas = this._fwc;
     let { offsetWidth, clientHeight } = this._container;
     let prevWidth = canvas.getWidth();
     let prevHeight = canvas.getHeight();
@@ -295,7 +305,7 @@ class SketchField extends PureComponent {
       parentWidth: offsetWidth
     });
 
-    [this._fcursor, canvas, backgroundCanvas].forEach((currentCanvas) => {
+    [this._fcursor, canvas, backgroundCanvas, watershedCanvas].forEach((currentCanvas) => {
       currentCanvas.setWidth(offsetWidth - widthCorrection);
       currentCanvas.setHeight(clientHeight - heightCorrection);
 
@@ -343,7 +353,7 @@ class SketchField extends PureComponent {
    * @param factor the zoom factor
    */
   zoom = (factor) => {
-    [this._fc, this._fbc].forEach((canvas) => {
+    [this._fc, this._fbc, this._fwc].forEach((canvas) => {
       let objects = canvas.getObjects();
       for (let i in objects) {
         objects[i].scaleX = objects[i].scaleX * factor;
@@ -446,7 +456,10 @@ class SketchField extends PureComponent {
    *
    * @returns {String} URL containing a representation of the object in the format specified by options.format
    */
-  toDataURL = (options) => this._fc.toDataURL(options);
+  toDataURL = (options, targetWatershed = false) => {
+    const targetCanvas = targetWatershed ? this._watershedCanvas : this._fc;
+    return targetCanvas.toDataURL(options);
+  }
 
   /**
    * Returns JSON representation of canvas
@@ -487,8 +500,13 @@ class SketchField extends PureComponent {
     let discarded = this.toJSON(propertiesToInclude);
     this._fc.clear();
     this._fbc.clear();
+    this._fwc.clear();
     this._history.clear();
     return discarded
+  };
+
+  clearWatershed = () => {
+    this._fwc.clear();
   };
 
   /**
@@ -591,12 +609,21 @@ class SketchField extends PureComponent {
 
     let canvas = this._fc = new fabric.Canvas(this._canvas);
     let backgroundCanvas = this._fbc = new fabric.Canvas(this._backgroundCanvas);
+    let watershedCanvas = this._fwc = new fabric.Canvas(this._watershedCanvas);
     const cursorCanvas = this._fcursor = new fabric.StaticCanvas(this._cursor);
     const mouseCursor = new fabric.Circle({ originX: 'center', originY: 'center' });
 
-    // set canvas position
-    canvas.wrapperEl.style.position = 'absolute';
-    backgroundCanvas.wrapperEl.style.position = 'absolute';
+    [canvas, backgroundCanvas, watershedCanvas, cursorCanvas].forEach(c => {
+      c.enableRetinaScaling = false;
+      c.imageSmoothingEnabled = false;
+      c.svgViewportTransformation = false;
+    });
+
+    [canvas, backgroundCanvas, watershedCanvas].forEach(c => {
+      c.wrapperEl.style.position = 'absolute';
+    });
+
+    watershedCanvas.wrapperEl.style.opacity = 0.4;
     cursorCanvas.lowerCanvasEl.style.position = 'absolute';
     cursorCanvas.lowerCanvasEl.style.pointerEvents = 'none';
 
@@ -692,6 +719,9 @@ class SketchField extends PureComponent {
           id={uuid4()}
           ref={(c) => this._backgroundCanvas = c}
         >
+          Sorry, Canvas HTML5 element is not supported by your browser
+        </canvas>
+        <canvas id="watershed" ref={(c) => this._watershedCanvas = c}>
           Sorry, Canvas HTML5 element is not supported by your browser
         </canvas>
         <canvas
