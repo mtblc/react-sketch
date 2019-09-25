@@ -15,6 +15,9 @@ import Tool from './tools';
 
 const fabric = require('fabric').fabric;
 
+const WATERSHED_OPACITY_FACTOR = 0.75;
+const DEFAULT_BACKGROUND_OPACITY = 1;
+
 /**
  * Sketch Tool based on FabricJS for React Applications
  */
@@ -67,7 +70,7 @@ class SketchField extends PureComponent {
     lineWidth: 10,
     fillColor: 'transparent',
     backgroundColor: 'transparent',
-    opacity: 1.0,
+    opacity: DEFAULT_BACKGROUND_OPACITY,
     undoSteps: 25,
     tool: Tool.Pencil,
     widthCorrection: 2,
@@ -596,6 +599,9 @@ class SketchField extends PureComponent {
    */
   setCanvasOpacity = (opacityValue) => {
     this._fc.wrapperEl.style.opacity = opacityValue;
+    this._fwc.wrapperEl.style.opacity = opacityValue === 1
+      ? opacityValue
+      : opacityValue * WATERSHED_OPACITY_FACTOR;
   }
 
   componentDidMount = () => {
@@ -623,7 +629,7 @@ class SketchField extends PureComponent {
       c.wrapperEl.style.position = 'absolute';
     });
 
-    watershedCanvas.wrapperEl.style.opacity = 0.4;
+    watershedCanvas.wrapperEl.style.opacity = DEFAULT_BACKGROUND_OPACITY * WATERSHED_OPACITY_FACTOR;
     cursorCanvas.lowerCanvasEl.style.position = 'absolute';
     cursorCanvas.lowerCanvasEl.style.pointerEvents = 'none';
 
