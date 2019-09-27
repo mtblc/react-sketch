@@ -107,7 +107,8 @@ class History {
    * @returns {boolean}
    */
   canUndo() {
-    return this.undoList.length > 0 || this.current !== null;
+    const { undoList, current } = this;
+    return undoList.length > 0 || Array.isArray(current) && current[1] && JSON.parse(current[1]).type === 'path';
   }
 
   /**
