@@ -18,9 +18,9 @@ describe('History', () => {
   it('Informs if can undo', () => {
     const instance = new History();
     expect(instance.canUndo()).toBeFalsy();
-    instance.keep('1');
+    instance.keep(['a', JSON.stringify({ type: 'path' })]);
     expect(instance.canUndo()).toBeTruthy();
-    instance.keep('2');
+    instance.keep(['b', JSON.stringify({ type: 'path' })]);
     expect(instance.canUndo()).toBeTruthy();
   });
 
